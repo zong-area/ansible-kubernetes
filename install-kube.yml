@@ -1,0 +1,53 @@
+---
+- name: all
+  hosts: all
+  become: true
+  vars: 
+    kube_packages:
+      - kubelet
+      - kubeadm
+      - kubectl
+
+  tasks:
+    - name: download kubelet
+      ansible.builtin.shell: "curl -LO 'https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl' " 
+
+    - name: install kubelet
+      ansible.builtin.command: "sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl"
+
+    - name: copy kubernetes repo to all node
+      ansible.builtin.copy:
+        src: kubernetes.repo
+        dest: /etc/yum.repos.d/kubernetes.repo
+        owner: root
+        group: root
+
+    - name: update respository
+      ansible.builtin.dnf:
+        name: "*"
+        state: latest
+
+    - name: install kubectl kubeadm kubelet
+      ansible.builtin.dnf:
+        name: "{{ kube_packages }}" 
+        state: latest
+        disable_excludes: kubernetes 
+    
+    - name: enable kube service
+      ansible.builtin.service:
+        name: kubelet
+        state: started
+        enabled: true    
+
+    - name: firewall config
+      ansible.posix.firewalld:
+        port: 6443
+        permanent: true
+        state: enabled
+
+    - name: firewall config 2
+      ansible.posix.firewalld:
+        port: 10250
+        permanent: true
+        state: enabled
+

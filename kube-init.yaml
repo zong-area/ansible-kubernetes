@@ -1,0 +1,10 @@
+---
+- name: kubernetes control node init create
+  hosts: nodea.lab.example.com
+  become: true
+
+  tasks:
+    - name: use kubeadm init kubernetes
+      ansible.builtin.command: "kubeadm init --config kubeadm-config.yml"
+      register: init_kube_env
+      failed_when: "''" 

@@ -1,0 +1,10 @@
+
+[manager]
+nodea.lab.example.com
+nodeb.lab.example.com
+nodec.lab.example.com
+
+[worker]
+noded.lab.example.com  
+nodee.lab.example.com  
+nodef.lab.example.com  

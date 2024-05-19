@@ -1,0 +1,51 @@
+---
+- name: install crio
+  hosts: all
+  become: true
+  ignore_errors: yes
+  
+  tasks:
+    - name: copy to all node
+      ansible.builtin.copy:
+        src: install-crio.sh
+        dest: "{{ ansible_facts.user_dir }}"
+        mode: "0755"
+        force: true
+
+    - name: ensure crio service is 
+      ansible.builtin.command: "systemctl status crio"
+      register: ensure_crio_status
+
+        #    - name: display ensure_crio_status
+        # ansible.builtin.debug:
+        # var: ensure_crio_status    
+
+    - name: install crio need package
+      ansible.builtin.shell: "sh {{ ansible_facts.user_dir }}/install-crio.sh"
+      register: crio_packages
+      failed_when: "'Unable to find a match' in crio_packages.stdout or 'No match for argument' in crio_packages.stdout"
+        #      when: "'Unit crio.service could not be found.' in ensure_crio_status.stdout"
+
+    - name: display error message
+      ansible.builtin.debug: 
+        var: "{{ crio_packages.stdout | to_nice_json }}"
+
+    - name: config crio setting
+      ansible.builtin.lineinfile:
+        path: /etc/crio/crio.conf
+        regexp: "^# cgroup_manager ="
+        line: cgroup_manager = "cgroupfs"
+        state: present
+
+    - name: config crio setting 2
+      ansible.builtin.lineinfile:
+        path: /etc/crio/crio.conf
+        regexp: "^# conmon_cgroup ="
+        line: conmon_cgroup = "pod"
+        state: present
+
+    - name: enable crio service
+      ansible.builtin.service:
+        name: crio
+        state: started
+        enabled: true 
