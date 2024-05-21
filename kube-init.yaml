@@ -15,8 +15,9 @@
       ignore_errors: true
 
     - name: display kubernetes create for kubeadm
-      ansible.builtin.debug:
-        var: "{{ kube_init_env | to_nice_json }}"
+      ansible.builtin.debug: 
+        var: "{{ kube_init_env.stdout | to_nice_json }}"
+      when: "'kubeadm join' in kube_init_env.stdout" 
 
     - name: cp to all node
       ansible.builtin.copy:
