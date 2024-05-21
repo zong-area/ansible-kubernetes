@@ -4,7 +4,29 @@
   become: true
 
   tasks:
+    - name: cp kubeadm-config file to root directory
+      ansible.builtin.copy:
+        src: kubeadm-config.yml
+        dest: "{{ ansible_facts.user_dir }}" 
+
     - name: use kubeadm init kubernetes
-      ansible.builtin.command: "kubeadm init --config kubeadm-config.yml"
-      register: init_kube_env
-      failed_when: "''" 
+      ansible.builtin.shell: "kubeadm init --config {{ ansible_facts.user_dir }}/kubeadm-config.yml"
+      register: kube_init_env
+      ignore_errors: true
+
+    - name: display kubernetes create for kubeadm
+      ansible.builtin.debug:
+        var: "{{ kube_init_env | to_nice_json }}"
+
+    - name: cp to all node
+      ansible.builtin.copy:
+        src: kube-init-dir.sh
+        dest: "{{ ansible_facts.user_dir }}"
+        
+    - name: create kubectl need directory
+      ansible.builtin.shell: "bash {{ ansible_facts.user_dir }}/kube-init-dir.sh"
+      register: kube_init
+
+    - name: display node
+      ansible.builtin.debug:
+        var: "{{ kube_init | to_nice_json }}"

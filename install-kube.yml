@@ -39,13 +39,13 @@
         state: started
         enabled: true    
 
-    - name: firewall config
+    - name: firewall config add 6443 tcp
       ansible.posix.firewalld:
         port: 6443/tcp
         permanent: true
         state: enabled
 
-    - name: firewall config 2
+    - name: firewall config add 10250 tcp
       ansible.posix.firewalld:
         port: 10250/tcp
         permanent: true
