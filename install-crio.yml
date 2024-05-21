@@ -12,7 +12,7 @@
         mode: "0755"
         force: true
 
-    - name: ensure crio service is 
+    - name: ensure crio service is active
       ansible.builtin.command: "systemctl status crio"
       register: ensure_crio_status
 
@@ -24,7 +24,7 @@
       ansible.builtin.shell: "sh {{ ansible_facts.user_dir }}/install-crio.sh"
       register: crio_packages
       failed_when: "'Unable to find a match' in crio_packages.stdout or 'No match for argument' in crio_packages.stdout"
-        #      when: "'Unit crio.service could not be found.' in ensure_crio_status.stdout"
+        # when: '"Unit crio.service could not be found." in ensure_crio_status.stdout'
 
     - name: display error message
       ansible.builtin.debug: 
@@ -43,6 +43,9 @@
         regexp: "^# conmon_cgroup ="
         line: conmon_cgroup = "pod"
         state: present
+
+    - name: config CNI plugin
+      ansible.builtin.shell: "sudo cp /opt/cri-o/contrib/cni/11-crio-ipv4-bridge.conflist /etc/cni/net.d/"
 
     - name: enable crio service
       ansible.builtin.service:

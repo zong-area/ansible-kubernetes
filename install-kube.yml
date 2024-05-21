@@ -10,7 +10,7 @@
 
   tasks:
     - name: download kubelet
-      ansible.builtin.shell: "curl -LO 'https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl' " 
+      ansible.builtin.shell: curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"  
 
     - name: install kubelet
       ansible.builtin.command: "sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl"
@@ -41,13 +41,19 @@
 
     - name: firewall config
       ansible.posix.firewalld:
-        port: 6443
+        port: 6443/tcp
         permanent: true
         state: enabled
 
     - name: firewall config 2
       ansible.posix.firewalld:
-        port: 10250
+        port: 10250/tcp
         permanent: true
         state: enabled
+      notify: reload_firewall
 
+  handlers:
+    - name: reload_firewall
+      ansible.builtin.service:
+        name: firewalld
+        state: reloaded
